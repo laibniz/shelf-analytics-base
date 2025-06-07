@@ -76,17 +76,15 @@ async def upload_image(
     logger.debug("Temporary file saved at %s", tmp_path)
     try:
         detections = detector.detect_products(tmp_path)
-        os.remove(tmp_path)
         logger.debug("Detections: %s", len(detections))
         clustered = clusterer.cluster(detections, n_clusters=clusters)
         logger.debug("Clusters formed: %s", len(clustered))
 
-        with open(tmp_path, "rb") as f:
-            original_bytes = f.read()
-        original_image = Image.open(io.BytesIO(original_bytes))
+        original_image = Image.open(io.BytesIO(content))
         width, height = original_image.size
-        original_encoded = base64.b64encode(original_bytes).decode("utf-8")
+        original_encoded = base64.b64encode(content).decode("utf-8")
         original_image.close()
+        os.remove(tmp_path)
 
         response_clusters: List[Dict] = []
         detection_data: List[Dict] = []
