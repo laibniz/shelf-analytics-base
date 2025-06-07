@@ -9,7 +9,7 @@ This repository contains the implementation of a facings identifier using YOLOv8
   - [Introduction](#introduction)
     - [What is YOLOv8?](#what-is-yolov8)
     - [What are the Image Embeddings?](#what-are-the-image-embeddings)
-  - [Mehodology](#mehodology)
+  - [Methodology](#methodology)
     - [Identifying all skus from a shelf image](#identifying-all-skus-from-a-shelf-image)
     - [Predicting brand for every detected sku](#predicting-brand-for-every-detected-sku)
       - [Grouping the products in clusters](#grouping-the-products-in-clusters)
@@ -42,7 +42,7 @@ In summary, image embeddings are powerful tools in computer vision that allow us
 
 In this project, image embeddings are utilized to identify the product name of each identified facing.
 
-## Mehodology
+## Methodology
 
 The methodology for the facings identifier using YOLOv8 and image embeddings involves two steps:
 1. identifying SKUs from a shelf image
@@ -136,7 +136,7 @@ conda activate facings-identifier
 pip install --force-reinstall torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
-**Identifiyng crops from a shelf image**
+**Identifying crops from a shelf image**
 
 Assuming the image you want to analyze is located at data/img/testing.jpg, you can use the following command to identify the different product facings and predict their corresponding product names:
 ``` Bash
