@@ -6,7 +6,6 @@ import io
 from typing import Dict, List
 import logging
 
-
 from fastapi import FastAPI, UploadFile, File, Depends
 from sqlalchemy import Column, Integer, String, DateTime, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
@@ -60,7 +59,6 @@ async def upload_image(file: UploadFile = File(...)):
         content = await file.read()
         tmp.write(content)
         tmp_path = tmp.name
-
     logger.debug("Temporary file saved at %s", tmp_path)
     try:
         detections = detector.detect_products(tmp_path)
@@ -86,7 +84,6 @@ async def upload_image(file: UploadFile = File(...)):
 @app.post("/save-labels")
 async def save_labels(labels: Dict[str, str], db: Session = Depends(get_db)):
     logger.info("Saving %d labels", len(labels))
-
     for cluster_id, label in labels.items():
         item = db.query(ClusterLabel).filter_by(cluster_id=str(cluster_id)).first()
         if item:
@@ -100,9 +97,7 @@ async def save_labels(labels: Dict[str, str], db: Session = Depends(get_db)):
 @app.get("/clusters")
 def list_clusters(db: Session = Depends(get_db)):
     items = db.query(ClusterLabel).all()
-
     logger.debug("Listing %d clusters", len(items))
-
     return [
         {
             'cluster_id': item.cluster_id,

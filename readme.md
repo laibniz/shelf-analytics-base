@@ -154,21 +154,22 @@ the crop image testing10 is predicted as sprite_pet with a 80% probability
 the crop image testing11 is predicted as cocacola_pet with a 80% probability
 ```
 
-## Web application
 
-### Starting the FastAPI server
 
-Run the API with Uvicorn from the repository root:
+### Running the FastAPI backend and React frontend
+
+To launch the web interface locally, run the backend and frontend in separate terminals.
+
+**Start the backend**
 
 ```bash
 uvicorn backend.main:app --reload
 ```
 
-This will start the FastAPI server on `http://127.0.0.1:8000` and reload it on code changes.
 
-### Running the React frontend
+The API exposes `/upload-image`, `/save-labels`, `/clusters`, and `/log` endpoints on `http://localhost:8000`.
 
-The frontend is built with React and Vite. Start it by running:
+**Start the frontend**
 
 ```bash
 cd frontend
@@ -176,14 +177,8 @@ npm install
 npm run dev
 ```
 
-The application will be available at `http://localhost:5173`.
+Open `http://localhost:3000` and upload a shelf image. After detection and clustering, select a label for each cluster and click *Save Labels*.
 
-### API endpoints
-
-- **`/upload-image`** (`POST`): accepts a shelf image and returns a list of product clusters with base64 encoded thumbnails. The React app sends the selected image here when you click **Upload**.
-- **`/save-labels`** (`POST`): receives a mapping of `cluster_id` to a label and stores it in the SQLite database. Triggered by the **Save Labels** button.
-- **`/clusters`** (`GET`): lists all stored clusters and their labels. It can be used to pre-populate the UI with existing information.
-- **`/log`** (`POST`): simple endpoint used by the frontend logger to send messages to the backend.
 
 ## Conclusions
 In conclusion, this project demonstrates the possibility of developing software capable of extracting crucial data from images in the retail industry. By leveraging computer vision techniques, we can automate the process of counting product facings on store shelves, leading to improved inventory management and operational efficiency.
