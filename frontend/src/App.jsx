@@ -91,7 +91,6 @@ export default function App() {
   const [defaultLabels, setDefaultLabels] = useState({});
   const [labelOptions, setLabelOptions] = useState(initialLabels);
   const [newLabel, setNewLabel] = useState('');
-
   const uploadAndCluster = async (n) => {
     if (!file) return;
     const formData = new FormData();
