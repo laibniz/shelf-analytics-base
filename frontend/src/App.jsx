@@ -17,15 +17,26 @@ const colors = [
 function BoxOverlay({ image, detections, width, height, colorMap, defaultColors = [], unlabeledColor = '#808080' }) {
   const [dims, setDims] = useState({ w: 1, h: 1 });
   const imgRef = React.useRef(null);
+
   useEffect(() => {
-    if (imgRef.current) {
-      setDims({ w: imgRef.current.width, h: imgRef.current.height });
-    }
+    const updateDims = () => {
+      if (imgRef.current) {
+        setDims({ w: imgRef.current.clientWidth, h: imgRef.current.clientHeight });
+      }
+    };
+    updateDims();
+    window.addEventListener('resize', updateDims);
+    return () => window.removeEventListener('resize', updateDims);
   }, [image]);
   const scale = (val, max, disp) => (val / max) * disp;
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
-      <img src={`data:image/jpeg;base64,${image}`} ref={imgRef} alt="shelf" />
+    <div style={{ position: 'relative', display: 'inline-block', maxWidth: '600px', width: '100%' }}>
+      <img
+        src={`data:image/jpeg;base64,${image}`}
+        ref={imgRef}
+        alt="shelf"
+        style={{ maxWidth: '100%', height: 'auto', display: 'block' }}
+      />
       {detections.map((d, idx) => {
         const [x1, y1, x2, y2] = d.bbox;
         let color = colorMap[d.cluster_id];
@@ -91,11 +102,14 @@ export default function App() {
   const [defaultLabels, setDefaultLabels] = useState({});
   const [labelOptions, setLabelOptions] = useState(initialLabels);
   const [newLabel, setNewLabel] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const uploadAndCluster = async (n) => {
     if (!file) return;
     const formData = new FormData();
     formData.append('file', file);
     try {
+      setLoading(true);
       const res = await axios.post(`/upload-image?clusters=${n}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -113,12 +127,15 @@ export default function App() {
       setLabels(defaults);
     } catch (err) {
       log('upload failed ' + err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleNext1 = () => {
     if (!file) return;
     setStep(2);
+    setLoading(true);
     uploadAndCluster(clusterCount);
   };
 
@@ -137,6 +154,9 @@ export default function App() {
 
   const handleLabel = (cid, value) => {
     setLabels(prev => ({ ...prev, [cid]: value }));
+    if (value && !labelOptions.includes(value)) {
+      setLabelOptions([...labelOptions, value]);
+    }
   };
 
   const handleSave = async () => {
@@ -196,6 +216,7 @@ export default function App() {
 
       {step === 2 && (
         <div>
+          {loading && <div>Loading...</div>}
           {image && (
             <div>
               <BoxOverlay
@@ -219,20 +240,26 @@ export default function App() {
               value={newLabel}
               onChange={e => setNewLabel(e.target.value)}
             />
-            <button onClick={addLabel}>Add</button>
+            <button type="button" onClick={addLabel}>Add</button>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap' }}>
             {clusters.map(c => (
               <div key={c.cluster_id} style={{ margin: '10px', textAlign: 'center' }}>
                 <img src={`data:image/jpeg;base64,${c.image}`} width={80} />
-                <select onChange={e => handleLabel(c.cluster_id, e.target.value)} value={labels[c.cluster_id] || ''}>
-                  <option value="">Label</option>
-                  {labelOptions.map(m => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
+                <input
+                  type="text"
+                  list="label-options"
+                  value={labels[c.cluster_id] || ''}
+                  onChange={e => handleLabel(c.cluster_id, e.target.value)}
+                  style={{ width: '100px' }}
+                />
               </div>
             ))}
+            <datalist id="label-options">
+              {labelOptions.map(m => (
+                <option key={m} value={m} />
+              ))}
+            </datalist>
           </div>
           <button onClick={handleSave}>Save Labels</button>
         </div>
