@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+
+// Point axios at the FastAPI backend
+axios.defaults.baseURL = 'http://localhost:8000';
 import { log } from './logger';
 
 const masterData = [
