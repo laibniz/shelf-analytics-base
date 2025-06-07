@@ -177,9 +177,6 @@ The API exposes `/upload-image`, `/save-labels`, `/clusters`, and `/log` endpoin
 
 When the frontend interacts with these endpoints, the backend prints informative log messages in the terminal.
 
-
-Frontend logs appear in the browser console. Open the developer tools in your
-browser to inspect them while you interact with the UI.
 **Start the frontend**
 
 ```bash
@@ -188,7 +185,13 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000` and upload a shelf image. After detection and clustering, select a label for each cluster and click *Save Labels*.
+Open `http://localhost:3000` to access the three-step interface:
+
+1. **Upload** a shelf photo.
+2. **Adjust clustering** with the slider and label the representative images.
+3. View the color coded result and *share of facings* chart.
+
+Click *Save Labels* to store the selections.
 
 
 ## Conclusions
