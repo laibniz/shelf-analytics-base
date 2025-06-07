@@ -17,6 +17,10 @@ This repository contains the implementation of a facings identifier using YOLOv8
     - [Testing the model](#testing-the-model)
   - [How to  run the model](#how-to--run-the-model)
     - [Preparing the environment](#preparing-the-environment)
+  - [Web application](#web-application)
+    - [Starting the FastAPI server](#starting-the-fastapi-server)
+    - [Running the React frontend](#running-the-react-frontend)
+    - [API endpoints](#api-endpoints)
   - [Conclusions](#conclusions)
   - [Links](#links)
 
@@ -151,6 +155,7 @@ the crop image testing11 is predicted as cocacola_pet with a 80% probability
 ```
 
 
+
 ### Running the FastAPI backend and React frontend
 
 To launch the web interface locally, run the backend and frontend in separate terminals.
@@ -160,6 +165,7 @@ To launch the web interface locally, run the backend and frontend in separate te
 ```bash
 uvicorn backend.main:app --reload
 ```
+
 
 The API exposes `/upload-image`, `/save-labels`, `/clusters`, and `/log` endpoints on `http://localhost:8000`.
 
@@ -172,6 +178,7 @@ npm run dev
 ```
 
 Open `http://localhost:3000` and upload a shelf image. After detection and clustering, select a label for each cluster and click *Save Labels*.
+
 
 ## Conclusions
 In conclusion, this project demonstrates the possibility of developing software capable of extracting crucial data from images in the retail industry. By leveraging computer vision techniques, we can automate the process of counting product facings on store shelves, leading to improved inventory management and operational efficiency.

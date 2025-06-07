@@ -27,8 +27,10 @@ class ClusterLabel(Base):
 
 Base.metadata.create_all(bind=engine)
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 app = FastAPI()
 
@@ -42,6 +44,7 @@ def get_db():
     finally:
         db.close()
 
+
 @app.post("/log")
 async def log_message(message: Dict[str, str]):
     text = message.get("message", "")
@@ -51,6 +54,7 @@ async def log_message(message: Dict[str, str]):
 @app.post("/upload-image")
 async def upload_image(file: UploadFile = File(...)):
     logger.info("Received upload: %s", file.filename)
+
     with NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
         content = await file.read()
         tmp.write(content)

@@ -15,7 +15,7 @@ N_NEIGHBORS = 5
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='argument parser')
-    parser.add_argument('--input', help='Input file path')
+    parser.add_argument('--input', required=True, help='Input file path')
 
     # Parse the command-line arguments
     args = parser.parse_args()
