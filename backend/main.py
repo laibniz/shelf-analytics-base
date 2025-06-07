@@ -4,9 +4,11 @@ import base64
 import os
 import io
 from typing import Dict, List
+from PIL import Image
 import logging
 
-from fastapi import FastAPI, UploadFile, File, Depends
+from fastapi import FastAPI, UploadFile, File, Depends, Query
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Column, Integer, String, DateTime, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
@@ -34,6 +36,15 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# Allow the React frontend to make cross-origin requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 detector = ProductDetector()
 clusterer = ProductClusterer()
 
@@ -52,8 +63,11 @@ async def log_message(message: Dict[str, str]):
     return {"status": "logged"}
 
 @app.post("/upload-image")
-async def upload_image(file: UploadFile = File(...)):
-    logger.info("Received upload: %s", file.filename)
+async def upload_image(
+    file: UploadFile = File(...),
+    clusters: int = Query(10, description="Number of clusters")
+):
+    logger.info("Received upload: %s with %d clusters", file.filename, clusters)
 
     with NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
         content = await file.read()
@@ -62,21 +76,40 @@ async def upload_image(file: UploadFile = File(...)):
     logger.debug("Temporary file saved at %s", tmp_path)
     try:
         detections = detector.detect_products(tmp_path)
-        os.remove(tmp_path)
         logger.debug("Detections: %s", len(detections))
-        clusters = clusterer.cluster(detections)
-        logger.debug("Clusters formed: %s", len(clusters))
-        response: List[Dict] = []
-        for cluster_id, items in clusters.items():
+        clustered = clusterer.cluster(detections, n_clusters=clusters)
+        logger.debug("Clusters formed: %s", len(clustered))
+
+        original_image = Image.open(io.BytesIO(content))
+        width, height = original_image.size
+        original_encoded = base64.b64encode(content).decode("utf-8")
+        original_image.close()
+        os.remove(tmp_path)
+
+        response_clusters: List[Dict] = []
+        detection_data: List[Dict] = []
+        for cid, info in clustered.items():
+            items = info["items"]
+            rep_idx = info["representative_index"]
+
+            rep_buf = io.BytesIO()
+            items[rep_idx]["image"].save(rep_buf, format="JPEG")
+            rep_encoded = base64.b64encode(rep_buf.getvalue()).decode("utf-8")
+            response_clusters.append({"cluster_id": cid, "image": rep_encoded})
+
             for item in items:
-                buf = io.BytesIO()
-                item['image'].save(buf, format='JPEG')
-                encoded = base64.b64encode(buf.getvalue()).decode('utf-8')
-                response.append({
-                    'cluster_id': cluster_id,
-                    'image': encoded
+                detection_data.append({
+                    "cluster_id": cid,
+                    "bbox": item["bbox"],
                 })
-        return {'products': response}
+
+        return {
+            "image": original_encoded,
+            "width": width,
+            "height": height,
+            "clusters": response_clusters,
+            "detections": detection_data,
+        }
     except Exception as exc:
         logger.exception("Error processing image: %s", exc)
         return {'error': 'processing failed'}
