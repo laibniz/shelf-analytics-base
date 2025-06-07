@@ -3,7 +3,7 @@ import axios from 'axios';
 axios.defaults.baseURL = 'http://localhost:8000';
 import { log } from './logger';
 
-const masterData = [
+const initialLabels = [
   'Coca-Cola Can',
   'Sprite Bottle',
   'Fanta Bottle',
@@ -14,7 +14,7 @@ const colors = [
   '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabebe',
 ];
 
-function BoxOverlay({ image, detections, width, height, colorMap }) {
+function BoxOverlay({ image, detections, width, height, colorMap, defaultColors = [], unlabeledColor = '#808080' }) {
   const [dims, setDims] = useState({ w: 1, h: 1 });
   const imgRef = React.useRef(null);
   useEffect(() => {
@@ -28,7 +28,14 @@ function BoxOverlay({ image, detections, width, height, colorMap }) {
       <img src={`data:image/jpeg;base64,${image}`} ref={imgRef} alt="shelf" />
       {detections.map((d, idx) => {
         const [x1, y1, x2, y2] = d.bbox;
-        const color = colorMap[d.cluster_id] || colors[d.cluster_id % colors.length];
+        let color = colorMap[d.cluster_id];
+        if (!color) {
+          if (defaultColors.length) {
+            color = defaultColors[d.cluster_id % defaultColors.length];
+          } else {
+            color = unlabeledColor;
+          }
+        }
         const left = scale(x1, width, dims.w);
         const top = scale(y1, height, dims.h);
         const boxW = scale(x2 - x1, width, dims.w);
@@ -81,9 +88,9 @@ export default function App() {
   const [imgHeight, setImgHeight] = useState(1);
   const [clusterCount, setClusterCount] = useState(10);
   const [labels, setLabels] = useState({});
-
-  const colorMap = colors;
-
+  const [defaultLabels, setDefaultLabels] = useState({});
+  const [labelOptions, setLabelOptions] = useState(initialLabels);
+  const [newLabel, setNewLabel] = useState('');
   const uploadAndCluster = async (n) => {
     if (!file) return;
     const formData = new FormData();
@@ -97,6 +104,13 @@ export default function App() {
       setImgHeight(res.data.height);
       setDetections(res.data.detections);
       setClusters(res.data.clusters);
+      const defaults = {};
+      res.data.clusters.forEach(c => {
+        if (defaultLabels[c.cluster_id]) {
+          defaults[c.cluster_id] = defaultLabels[c.cluster_id];
+        }
+      });
+      setLabels(defaults);
     } catch (err) {
       log('upload failed ' + err);
     }
@@ -114,6 +128,13 @@ export default function App() {
     uploadAndCluster(n);
   };
 
+  const addLabel = () => {
+    if (newLabel && !labelOptions.includes(newLabel)) {
+      setLabelOptions([...labelOptions, newLabel]);
+      setNewLabel('');
+    }
+  };
+
   const handleLabel = (cid, value) => {
     setLabels(prev => ({ ...prev, [cid]: value }));
   };
@@ -121,6 +142,26 @@ export default function App() {
   const handleSave = async () => {
     await axios.post('/save-labels', labels);
     setStep(3);
+  };
+
+  const handleStartOver = () => {
+    setFile(null);
+    setImage(null);
+    setDetections([]);
+    setClusters([]);
+    setLabels({});
+    setDefaultLabels({});
+    setStep(1);
+  };
+
+  const handleApplyNewShelf = () => {
+    setDefaultLabels(labels);
+    setFile(null);
+    setImage(null);
+    setDetections([]);
+    setClusters([]);
+    setLabels({});
+    setStep(1);
   };
 
   const shareCounts = () => {
@@ -157,12 +198,28 @@ export default function App() {
         <div>
           {image && (
             <div>
-              <BoxOverlay image={image} detections={detections} width={imgWidth} height={imgHeight} colorMap={colorMap} />
+              <BoxOverlay
+                image={image}
+                detections={detections}
+                width={imgWidth}
+                height={imgHeight}
+                colorMap={{}}
+                defaultColors={colors}
+              />
             </div>
           )}
           <div style={{ margin: '20px 0' }}>
             Clusters: {clusterCount}
             <input type="range" min="2" max="20" value={clusterCount} onChange={handleClusterSlider} />
+          </div>
+          <div style={{ marginBottom: '10px' }}>
+            <input
+              type="text"
+              placeholder="Add label"
+              value={newLabel}
+              onChange={e => setNewLabel(e.target.value)}
+            />
+            <button onClick={addLabel}>Add</button>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap' }}>
             {clusters.map(c => (
@@ -170,7 +227,7 @@ export default function App() {
                 <img src={`data:image/jpeg;base64,${c.image}`} width={80} />
                 <select onChange={e => handleLabel(c.cluster_id, e.target.value)} value={labels[c.cluster_id] || ''}>
                   <option value="">Label</option>
-                  {masterData.map(m => (
+                  {labelOptions.map(m => (
                     <option key={m} value={m}>{m}</option>
                   ))}
                 </select>
@@ -189,7 +246,7 @@ export default function App() {
               detections={detections}
               width={imgWidth}
               height={imgHeight}
-              colorMap={(function() {
+              colorMap={(function () {
                 const labelColors = {};
                 Object.values(labels).forEach((lab, i) => {
                   if (!labelColors[lab]) {
@@ -202,10 +259,15 @@ export default function App() {
                 });
                 return map;
               })()}
+              unlabeledColor="#808080"
             />
           )}
           <h3>Share of facings</h3>
           <ShareChart counts={shareCounts()} />
+          <div style={{ marginTop: '20px' }}>
+            <button onClick={handleStartOver} style={{ marginRight: '10px' }}>Start Over</button>
+            <button onClick={handleApplyNewShelf}>New Shelf</button>
+          </div>
         </div>
       )}
     </div>

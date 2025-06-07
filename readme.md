@@ -188,10 +188,10 @@ npm run dev
 Open `http://localhost:3000` to access the three-step interface:
 
 1. **Upload** a shelf photo.
-2. **Adjust clustering** with the slider and label the representative images.
+2. **Adjust clustering** with the slider and label the representative images. You can add new labels on the fly.
 3. View the color coded result and *share of facings* chart.
 
-Click *Save Labels* to store the selections.
+Click *Save Labels* to store the selections. From the results page you can either start over or apply the same labels to a new shelf image.
 
 
 ## Conclusions
