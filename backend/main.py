@@ -7,6 +7,7 @@ from typing import Dict, List
 import logging
 
 from fastapi import FastAPI, UploadFile, File, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Column, Integer, String, DateTime, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
@@ -33,6 +34,15 @@ logger = logging.getLogger(__name__)
 
 
 app = FastAPI()
+
+# Allow the React dev server to communicate with the API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 detector = ProductDetector()
 clusterer = ProductClusterer()
