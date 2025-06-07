@@ -177,6 +177,9 @@ The API exposes `/upload-image`, `/save-labels`, `/clusters`, and `/log` endpoin
 
 When the frontend interacts with these endpoints, the backend prints informative log messages in the terminal.
 
+
+Frontend logs appear in the browser console. Open the developer tools in your
+browser to inspect them while you interact with the UI.
 **Start the frontend**
 
 ```bash
