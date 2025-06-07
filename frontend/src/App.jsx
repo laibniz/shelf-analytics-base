@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { log } from './logger';
 
@@ -12,6 +12,14 @@ function App() {
   const [file, setFile] = useState(null);
   const [products, setProducts] = useState([]);
   const [labels, setLabels] = useState({});
+
+  const handleFileChange = (e) => {
+    const f = e.target.files[0];
+    setFile(f);
+    if (f) {
+      log(`Selected file: ${f.name}`);
+    }
+  };
 
   const handleUpload = async () => {
     if (!file) return;
@@ -43,9 +51,13 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    log(`Current labels: ${JSON.stringify(labels)}`);
+  }, [labels]);
+
   return (
     <div className="p-4">
-      <input type="file" onChange={e => setFile(e.target.files[0])} />
+      <input type="file" onChange={handleFileChange} />
       <button onClick={handleUpload}>Upload</button>
       <div className="mt-4">
         {products.map((p, idx) => (

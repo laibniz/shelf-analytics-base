@@ -148,6 +148,8 @@ python main.py --input "data/img/testing.jpg"
 ```
 
 The script will utilize the pre-trained model and the knowledge base of classified crops stored in data/knowledge_base to make predictions. The results will be saved in a text file located at data/testing/predictions.txt. The file will have the following format:
+Client actions are logged to the backend via the `/log` endpoint. Check both the backend and frontend terminals for detailed logs during development.
+
 ```txt
 the crop image testing is predicted as cocacola_can with a 100% probability
 the crop image testing10 is predicted as sprite_pet with a 80% probability

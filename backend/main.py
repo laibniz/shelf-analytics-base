@@ -7,6 +7,7 @@ from typing import Dict, List
 import logging
 
 from fastapi import FastAPI, UploadFile, File, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Column, Integer, String, DateTime, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
@@ -27,7 +28,19 @@ class ClusterLabel(Base):
 
 Base.metadata.create_all(bind=engine)
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)s %(message)s",
+    datefmt="%H:%M:%S",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+        logger.debug("Label for cluster %s: %s", cluster_id, label)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
