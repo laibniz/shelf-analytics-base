@@ -140,6 +140,12 @@ conda activate facings-identifier
 pip install --force-reinstall torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
+**Ensure NumPy < 2 is installed**
+
+``` Bash
+pip install "numpy<2"
+```
+
 **Identifying crops from a shelf image**
 
 Assuming the image you want to analyze is located at data/img/testing.jpg, you can use the following command to identify the different product facings and predict their corresponding product names:
@@ -169,6 +175,8 @@ uvicorn backend.main:app --reload
 
 The API exposes `/upload-image`, `/save-labels`, `/clusters`, and `/log` endpoints on `http://localhost:8000`.
 
+When the frontend interacts with these endpoints, the backend prints informative log messages in the terminal.
+
 **Start the frontend**
 
 ```bash
@@ -177,7 +185,13 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000` and upload a shelf image. After detection and clustering, select a label for each cluster and click *Save Labels*.
+Open `http://localhost:3000` to access the three-step interface:
+
+1. **Upload** a shelf photo.
+2. **Adjust clustering** with the slider and label the representative images.
+3. View the color coded result and *share of facings* chart.
+
+Click *Save Labels* to store the selections.
 
 
 ## Conclusions
