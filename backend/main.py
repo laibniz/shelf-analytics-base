@@ -35,6 +35,15 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# Allow the React dev server to communicate with the API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 detector = ProductDetector()
 clusterer = ProductClusterer()
 
