@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { log } from './logger';
 
+
 const masterData = [
   'Coca-Cola Can',
   'Sprite Bottle',
@@ -15,6 +16,7 @@ function App() {
 
   const handleUpload = async () => {
     if (!file) return;
+
     log('Uploading image');
     const formData = new FormData();
     formData.append('file', file);
@@ -34,6 +36,7 @@ function App() {
   };
 
   const handleSubmit = async () => {
+
     log('Saving labels');
     try {
       await axios.post('/save-labels', labels);
@@ -41,6 +44,7 @@ function App() {
     } catch (err) {
       log(`Save failed: ${err}`);
     }
+
   };
 
   return (
