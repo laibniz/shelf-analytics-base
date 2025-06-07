@@ -8,6 +8,7 @@ from PIL import Image
 import logging
 
 from fastapi import FastAPI, UploadFile, File, Depends, Query
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Column, Integer, String, DateTime, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
@@ -35,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Allow the React dev server to communicate with the API
+# Allow the React frontend to make cross-origin requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
