@@ -1,2 +1,8 @@
 ultralytics==8.0.92
 scikit-learn==1.2.2
+fastapi==0.97.0
+uvicorn==0.27.0.post1
+SQLAlchemy==2.0.23
+pillow
+numpy
+aiofiles
