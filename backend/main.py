@@ -4,6 +4,8 @@ import base64
 import os
 import io
 from typing import Dict, List
+import logging
+
 
 from fastapi import FastAPI, UploadFile, File, Depends
 from sqlalchemy import Column, Integer, String, DateTime, create_engine
@@ -26,6 +28,11 @@ class ClusterLabel(Base):
 
 Base.metadata.create_all(bind=engine)
 
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 app = FastAPI()
 
 detector = ProductDetector()
@@ -38,29 +45,48 @@ def get_db():
     finally:
         db.close()
 
+
+@app.post("/log")
+async def log_message(message: Dict[str, str]):
+    text = message.get("message", "")
+    logger.info("CLIENT LOG: %s", text)
+    return {"status": "logged"}
+
 @app.post("/upload-image")
 async def upload_image(file: UploadFile = File(...)):
+    logger.info("Received upload: %s", file.filename)
+
     with NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
         content = await file.read()
         tmp.write(content)
         tmp_path = tmp.name
-    detections = detector.detect_products(tmp_path)
-    os.remove(tmp_path)
-    clusters = clusterer.cluster(detections)
-    response: List[Dict] = []
-    for cluster_id, items in clusters.items():
-        for item in items:
-            buf = io.BytesIO()
-            item['image'].save(buf, format='JPEG')
-            encoded = base64.b64encode(buf.getvalue()).decode('utf-8')
-            response.append({
-                'cluster_id': cluster_id,
-                'image': encoded
-            })
-    return {'products': response}
+
+    logger.debug("Temporary file saved at %s", tmp_path)
+    try:
+        detections = detector.detect_products(tmp_path)
+        os.remove(tmp_path)
+        logger.debug("Detections: %s", len(detections))
+        clusters = clusterer.cluster(detections)
+        logger.debug("Clusters formed: %s", len(clusters))
+        response: List[Dict] = []
+        for cluster_id, items in clusters.items():
+            for item in items:
+                buf = io.BytesIO()
+                item['image'].save(buf, format='JPEG')
+                encoded = base64.b64encode(buf.getvalue()).decode('utf-8')
+                response.append({
+                    'cluster_id': cluster_id,
+                    'image': encoded
+                })
+        return {'products': response}
+    except Exception as exc:
+        logger.exception("Error processing image: %s", exc)
+        return {'error': 'processing failed'}
 
 @app.post("/save-labels")
 async def save_labels(labels: Dict[str, str], db: Session = Depends(get_db)):
+    logger.info("Saving %d labels", len(labels))
+
     for cluster_id, label in labels.items():
         item = db.query(ClusterLabel).filter_by(cluster_id=str(cluster_id)).first()
         if item:
@@ -74,6 +100,9 @@ async def save_labels(labels: Dict[str, str], db: Session = Depends(get_db)):
 @app.get("/clusters")
 def list_clusters(db: Session = Depends(get_db)):
     items = db.query(ClusterLabel).all()
+
+    logger.debug("Listing %d clusters", len(items))
+
     return [
         {
             'cluster_id': item.cluster_id,
