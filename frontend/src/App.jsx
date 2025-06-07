@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { log } from './logger';
 
 const masterData = [
   'Coca-Cola Can',
@@ -14,12 +15,18 @@ function App() {
 
   const handleUpload = async () => {
     if (!file) return;
+    log('Uploading image');
     const formData = new FormData();
     formData.append('file', file);
-    const res = await axios.post('/upload-image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    setProducts(res.data.products);
+    try {
+      const res = await axios.post('/upload-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      log(`Received ${res.data.products.length} products`);
+      setProducts(res.data.products);
+    } catch (err) {
+      log(`Upload failed: ${err}`);
+    }
   };
 
   const handleChange = (clusterId, value) => {
@@ -27,8 +34,13 @@ function App() {
   };
 
   const handleSubmit = async () => {
-    await axios.post('/save-labels', labels);
-    alert('Labels saved');
+    log('Saving labels');
+    try {
+      await axios.post('/save-labels', labels);
+      alert('Labels saved');
+    } catch (err) {
+      log(`Save failed: ${err}`);
+    }
   };
 
   return (
